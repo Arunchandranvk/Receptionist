@@ -1,0 +1,145 @@
+{% extends 'admin_home.html' %}
+{% block adminhome %}
+{% load static %}
+    <main class="main-content min-h-screen">
+        <!-- Header Section -->
+        <header class="bg-white shadow-sm">
+            <div class="flex justify-between items-center px-8 py-4">
+                <h2 class="text-2xl font-bold text-gray-800">Event Management</h2>
+                <div class="flex items-center space-x-4">
+                    <button onclick="showAddEventModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Add New Event
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <!-- <div class="p-8"> -->
+            <!-- Search and Filter -->
+            <!-- <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                   
+                    
+                </div>
+            </div> -->
+
+            <!-- Events Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-3 ml-3  ">
+                <!-- Event Card -->
+                {% for event in events %}
+                <div class="bg-white rounded-lg shadow overflow-hidden event-card">
+                    
+                    <img src="{{ event.img.url }}" alt="Event Image" class="" style="height:200px;padding:10px;">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">{{event.title}}</h3>
+                                <p class="text-gray-600">{{event.cat}}</p>
+                            </div>
+                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                Upcoming
+                            </span>
+                        </div>
+                        <div class="mb-4">
+                            <p class="text-gray-600 mb-2">
+                                <span class="font-bold">Date:</span> {{event.date}}
+                            </p>
+                            <p class="text-gray-600 mb-2">
+                                <span class="font-bold">Time:</span> {{event.time}}
+                            </p>
+                            <p class="text-gray-600">
+                                <span class="font-bold">Venue:</span> {{event.venue}}
+                            </p>
+                        </div>
+                        <p class="text-gray-700 mb-4">{{event.description}}</p>
+                        <div class="flex justify-between items-center">
+                            <!-- <span class="text-blue-600">200 Registered</span> -->
+                            <div>
+                                <a href="{% url 'event-update' event.id %}" class="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
+                                <a href="{% url 'event-delete' event.id %}" class="text-red-600 hover:text-red-900">Cancel</a>
+                            </div>
+                        </div>
+                       
+                    </div>
+                    
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Add Event Modal -->
+        <div id="addEventModal" class="modal">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-4">Add New Event</h3>
+                        <form class="space-y-4" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                             {{form.errors}}
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Event Title</label>
+                                    <input type="text" class="w-full border rounded p-2" name="title" placeholder="Enter event title">
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                    <textarea class="w-full border rounded p-2" rows="3" name="description" placeholder="Enter event description"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                    <select class="w-full border rounded p-2" name="cat">
+                                        <option>Select Category</option>
+                                        <option>Technical</option>
+                                        <option>Cultural</option>
+                                        <option>Sports</option>
+                                        <option>Workshop</option>
+                                    </select>
+                                </div>
+                                    <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                    <input type="date" class="w-full border rounded p-2" name="date">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                                    <input type="time" class="w-full border rounded p-2" name="time">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Venue</label>
+                                    <input type="text" class="w-full border rounded p-2" name="venue" placeholder="Enter venue">
+                                </div>
+                               
+                                <div class="col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Event Banner</label>
+                                    <input type="file"  class="w-full border rounded p-2" name="img" >
+                                </div>
+                                <!-- <div class="col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Registration Deadline</label>
+                                    <input type="datetime-local" class="w-full border rounded p-2">
+                                </div> -->
+                            </div>
+                            <div class="flex justify-end space-x-3 mt-6">
+                                <button type="button" onclick="hideAddEventModal()" class="px-4 py-2 border rounded text-gray-600 hover:bg-gray-100">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                    Create Event
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function showAddEventModal() {
+            document.getElementById('addEventModal').classList.add('active');
+        }
+
+        function hideAddEventModal() {
+            document.getElementById('addEventModal').classList.remove('active');
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "userhome.html" %}
+{% load static %} 
+{% block user %}
+
+<!-- Notifications Section -->
+<div class="md:col-span-1">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Notifications</h2>
+        
+        <div class="space-y-4">
+            <div class="dashboard-card p-4 border rounded-lg bg-red-50">
+                <div class="flex items-start">
+                    <div class="bg-red-100 text-red-800 p-2 rounded-lg">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="font-semibold text-red-800">Important Notice</h3>
+                        <p class="text-sm text-gray-700">Mid-semester examination schedule published</p>
+                        <p class="text-xs text-gray-500 mt-1">2 hours ago</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card p-4 border rounded-lg">
+                <div class="flex items-start">
+                    <div class="bg-blue-100 text-blue-800 p-2 rounded-lg">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="font-semibold">Assignment Update</h3>
+                        <p class="text-sm text-gray-700">New assignment posted in Data Structures</p>
+                        <p class="text-xs text-gray-500 mt-1">5 hours ago</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card p-4 border rounded-lg">
+                <div class="flex items-start">
+                    <div class="bg-green-100 text-green-800 p-2 rounded-lg">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="font-semibold">Grades Posted</h3>
+                        <p class="text-sm text-gray-700">Database Management System results are now available</p>
+                        <p class="text-xs text-gray-500 mt-1">1 day ago</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="w-full mt-6 text-purple-600 hover:text-purple-700 transition-colors text-sm font-medium">
+            View All Notifications
+        </button>
+    </div>
+</div>
+
+{% endblock %}

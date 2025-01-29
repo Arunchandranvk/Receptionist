@@ -1,0 +1,136 @@
+{% extends 'admin_home.html' %}
+{% block adminhome %}
+{% load static %}
+    <main class="main-content min-h-screen">
+        <!-- Header Section -->
+        <header class="bg-white shadow-sm">
+            <div class="flex justify-between items-center px-8 py-4">
+                <h2 class="text-2xl font-bold text-gray-800">Notification Management</h2>
+                <div class="flex items-center space-x-4">
+                    <button onclick="showAddNotificationModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Add New Notification
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <div class="p-8">
+            
+
+            <!-- Notifications List -->
+            <div class="space-y-4">
+                <!-- Emergency Notification -->
+                {% for n in noti %}
+                <div class="bg-red-50 border-l-4 border-red-500 rounded-lg shadow p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                {% if n.imp == "Emergency" %}
+                                    <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Emergency</span>
+                                {% elif n.imp == "Important" %}
+                                    <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">Important</span>
+                                {% else %}
+                                    <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">General</span>
+                                {% endif %}
+                                <span class="text-gray-500 text-sm">{{n.create_at}}</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-800">{{n.title}}</h3>
+                            <p class="text-gray-600 mt-2 mb-3">{{n.message}}</p>
+                            {% if n.btn_name %}
+                            <a href="{{n.btn_link}}" class="bg-blue-300 text-white px-3 py-2 rounded hover:bg-blue-600">
+                                {{n.btn_name}}
+                            </a>
+                            {% endif %}
+                            <div class="flex items-center gap-4 mt-4">
+                             
+                                <span class="text-sm text-gray-500">Valid until: {{n.end_date}}</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="{% url 'notification-update' n.id %}" class="text-blue-600 hover:text-blue-900">Edit</a>
+                            <a href="{% url 'notification-delete' n.id %}" class="text-red-600 hover:text-red-900">Delete</a>
+                        </div>
+                    </div>
+                </div>
+
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Add Notification Modal -->
+        <div id="addNotificationModal" class="modal">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-4">Add New Notification</h3>
+                        <form class="space-y-4" method="post"  enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                                    <input type="text" class="w-full border rounded p-2" name="title" placeholder="Enter notification title">
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                                    <textarea class="w-full border rounded p-2" rows="3" name="message" placeholder="Enter notification message"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                                    <select class="w-full border rounded p-2" name="imp">
+                                        <option>General</option>
+                                        <option>Important</option>
+                                        <!-- <option>Urgent</option> -->
+                                        <option>Emergency</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Valid Until</label>
+                                    <input type="date" class="w-full border rounded p-2" name="end_date">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Button Name</label>
+                                    <input type="text" class="w-full border rounded p-2" name="btn_name">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Button Link</label>
+                                    <input type="url" class="w-full border rounded p-2" name="btn_link">
+                                </div>
+                                
+                                <!-- <div class="col-span-2">
+                                    <label class="flex items-center space-x-2">
+                                        <input type="checkbox" class="form-checkbox">
+                                        <span class="text-sm text-gray-700">Send Email Notification</span>
+                                    </label>
+                                </div> -->
+                            </div>
+                            <div class="flex justify-end space-x-3">
+                                <button type="button" onclick="hideAddNotificationModal()" class="px-4 py-2 border rounded text-gray-600 hover:bg-gray-100">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                    Send Notification
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function showAddNotificationModal() {
+            document.getElementById('addNotificationModal').classList.add('active');
+        }
+
+        function hideAddNotificationModal() {
+            document.getElementById('addNotificationModal').classList.remove('active');
+        }
+        
+    </script>
+{%  endblock %}
+
+
+

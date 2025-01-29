@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% load static %}
+<head>
+    <meta charset="UTF-8">
+    <title>SNGCE - Login</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #a39aad 0%, #2575fc 100%);
+            min-height: 100vh;
+        }
+        .login-container {
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+        .input-field {
+            transition: border-color 0.3s ease;
+        }
+        .input-field:focus {
+            border-color: #2575fc;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+    <div class="login-container rounded-2xl p-8 shadow-2xl max-w-md w-full">
+        <!-- Header with Logo -->
+        <div class="text-center mb-8">
+            <a href="" class="inline-block">
+                <img src="{% static 'images/college_logo.jpg' %}" alt="SNGCE Logo" style="height:100px;" class="mx-auto rounded-lg mb-4">
+                <h1 class="text-2xl font-bold text-gray-800">SNGCE</h1>
+                <!-- <p class="text-sm text-gray-600">Sree Narayana Gurukulam College of Engineering</p> -->
+            </a>
+        </div>
+
+        <!-- Login Form -->
+        <form class="space-y-6" method="post">
+            {% csrf_token %}
+            {{form.errors}}
+         
+            <div>
+                <!-- <label class="block text-sm font-medium text-gray-700 mb-2">Email</label> -->
+                <input 
+                    type="text" 
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                    placeholder="Enter your   email"
+                    name="email"
+                    required
+                >
+            </div>
+
+            <!-- Password -->
+            <div>
+                <!-- <label class="block text-sm font-medium text-gray-700 mb-2">Password</label> -->
+                <input 
+                    type="password" 
+                    name="password"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                    placeholder="Enter your password"
+                    required
+                >
+            </div>
+
+          
+            <button 
+                type="submit" 
+                class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 font-medium shadow-lg"
+            >
+                Login
+            </button>
+        </form>
+
+        <!-- Back to Home -->
+        <div class="mt-6 text-center">
+            <a href="{% url 'mh' %}"  class="text-blue-600 hover:text-blue-800 text-sm" >
+                ← Back to Homepage
+            </a>
+        </div>
+    </div>
+</body>
+</html>
