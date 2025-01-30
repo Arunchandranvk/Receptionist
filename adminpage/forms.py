@@ -22,9 +22,12 @@ class NotificationForm(forms.ModelForm):
         model = Notification
         fields = '__all__'
 
-
-
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Student
         exclude = ['std_id','password']
+
+class SemForm(forms.ModelForm):
+    class Meta:
+        model = SemesterRegistration
+        exclude = ['pdf_file']

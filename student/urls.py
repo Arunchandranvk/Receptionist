@@ -8,4 +8,5 @@ urlpatterns = [
     path('user-profile-edit/<int:pk>/',ProfilePUTView.as_view(),name='u-profileedit'),
     path('user-events/',EventView.as_view(),name='u-event'),
     path('user-notification/',NotificationView.as_view(),name='u-notification'),
+    path('submit/<int:pk>/', SemesterRegistrationView.as_view(), name='submit_registration')
 ]

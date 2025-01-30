@@ -125,8 +125,20 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
+import os
 
-STATIC_URL = 'static/'
+# Base directory
+
+# Media files (user-uploaded content, including PDFs)
+MEDIA_URL = '/media/'  # URL path to access media files
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Absolute path for storing media files
+
+# Static files (CSS, JS, images)
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+
+# Ensure the media directory exists
+os.makedirs(MEDIA_ROOT, exist_ok=True)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

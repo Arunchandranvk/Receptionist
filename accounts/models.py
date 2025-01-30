@@ -120,8 +120,14 @@ class Notification(models.Model):
     message = models.TextField()
     end_date = models.CharField(max_length=100,null=True)
     btn_name = models.CharField(max_length=100,null=True,blank=True)
-    btn_link = models.URLField(null=True,blank=True)
+    btn_link = models.CharField(max_length=100,null=True,blank=True)
     created_at = models.DateTimeField(auto_now_add=True,null=True)
 
     def __str__(self):
         return self.title
+
+
+class SemesterRegistration(models.Model):
+    notification_id = models.ForeignKey(Notification,on_delete=models.CASCADE,null=True)
+    student = models.CharField(max_length=100)
+    pdf_file = models.FileField(upload_to='registration_pdfs/')

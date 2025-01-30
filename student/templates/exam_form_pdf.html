@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SNGCE - Student Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+  
+    .containerS {
+        max-width: 800px;
+        margin: 0 auto;
+        background-color: #fff;
+        padding: 40px;
+        border: 2px solid #8b4513;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        margin-top:10px;
+    }
+    h1, h2 {
+        text-align: center;
+        color: #8b4513;
+    }
+    .details input, table input {
+        width: 100%;
+        padding: 5px;
+        border: 1px solid #8b4513;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    th, td {
+        border: 1px solid #8b4513;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #deb887;
+    }
+    .signature-box {
+        margin-top: 20px;
+        border-top: 1px solid #8b4513;
+        padding-top: 10px;
+    }
+</style>
+</head>
+<body>
+<div class="containerS">
+    <form >
+   
+        <h1>SREE NARAYANA GURUKULAM COLLEGE OF ENGINEERING</h1>
+        <h2>Application For Semester Registration</h2>
+        
+        <div class="details">
+            <p><strong>Name:</strong> <b>{{ name }}</b></p>
+            <p><strong>KTU Register Number:</strong> <b> {{ ktu_number }}</b></p>
+            <p><strong>Program & Branch:</strong> <b> {{ program }}</b></p>
+            <p><strong>Semester Completed:</strong> <b> {{ semester }}</b></p>
+            <p><strong>Admission Year / Batch:</strong> <b> {{ batch }}</b></p>
+            <p><strong>Date:</strong> <b> {{ date }}</b></p>
+        </div>
+
+        <h3>Semester Performance</h3>
+        <table>
+            <tr>
+                <th>Semester</th>
+                <th>Credits Earned</th>
+                <th>SGPA</th>
+                <th>Courses Failed</th>
+            </tr>
+            {% for data in semester_data %}
+                <tr>
+                    <td>{{ data.semester }}</td>
+                    <td>{{ data.credits_earned }}</td>
+                    <td>{{ data.sgpa }}</td>
+                    <td>{{ data.courses_failed }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+        
+        <h3>Internal Mark and Attendance</h3>
+        <table>
+            <tr>
+                <th>Course Code</th>
+                <th>Course Name</th>
+                <th>Internal Mark</th>
+                <th>Attendance</th>
+            </tr>
+            {% for data in course_data %}
+                <tr>
+                    <td>{{ data.course_code }}</td>
+                    <td>{{ data.course_name }}</td>
+                    <td>{{ data.internal_mark }}</td>
+                    <td>{{ data.attendance }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <div class="signature-box">
+            <p><strong>Student Signature:</strong> _____________________ </p>
+            <p><strong>Mobile:</strong> {{student_mobile}}
+        </div>
+        
+        <div class="signature-box">
+            <p><strong>Parent Signature:</strong> _____________________ </p>
+            <p><strong>Mobile:</strong>{{parent_mobile}}
+        </div>
+        
+        <div class="signature-box">
+            <p><strong>Sr. Advisor Remarks:</strong></p>
+            <p><strong>Name & Signature:</strong> _____________________</p>
+        </div>
+        
+        <div class="signature-box">
+            <p><strong>HoD Remarks:</strong></p>
+            <p><strong>Signature:</strong> _____________________ </p>
+        </div>
+        
+        <div class="signature-box">
+            <p><strong>Principal Remarks:</strong></p>
+            <p><strong>Signature:</strong> _____________________ </p>
+        </div>
+        
+        <button type="submit" style="margin-top: 20px; padding: 10px 20px; background-color: #8b4513; color: white; border: none;">Submit</button>
+    </form>
+</div>
+</body>
+</html>
