@@ -62,10 +62,13 @@ class Department(models.Model):
     name = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Student(CustomUser):
     std_id=models.CharField(unique=True,max_length=50)
-    img=models.FileField(upload_to='media/student_image',null=True)
+    img=models.FileField(upload_to='student_image',null=True)
     options=( 
         ("Male","Male"),
         ("Female","Female"),
@@ -84,16 +87,27 @@ class Student(CustomUser):
                 new_id = int(last_std_id[3:]) + 1
             else:
                 new_id = 1
-            self.std_id = f"SNC{new_id:04d}"  
+            self.std_id = f"LEM{new_id:04d}"  
             
-            self.set_password('SNGCE@123')
+            self.set_password('LEMENT@123')
         # if self.pk is None or not self.password:
-        #     self.password = set_password('SNGCE@123')
+        #     self.password = set_password('LEMENT@123')
         super().save(*args, **kwargs)
 
     def __str__(self):
         return self.std_id 
-    
+
+
+class Faculty(models.Model):
+    fac_id = models.CharField(max_length=100)
+    name=models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    dep =models.ForeignKey(Department,on_delete=models.CASCADE,related_name='fac_new')
+    desig = models.CharField(max_length=100)
+    phone = models.BigIntegerField()
+
+    def __str__(self):
+        return self.name
 
 class Event(models.Model):
     title = models.CharField(max_length=300)
@@ -101,7 +115,7 @@ class Event(models.Model):
     cat = models.CharField(max_length=300)
     date = models.DateField()
     time = models.CharField(max_length=200)
-    img = models.FileField(upload_to="media/Event_Image")
+    img = models.FileField(upload_to="Event_Image")
     venue = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True,null=True)
 
@@ -131,3 +145,5 @@ class SemesterRegistration(models.Model):
     notification_id = models.ForeignKey(Notification,on_delete=models.CASCADE,null=True)
     student = models.CharField(max_length=100)
     pdf_file = models.FileField(upload_to='registration_pdfs/')
+
+

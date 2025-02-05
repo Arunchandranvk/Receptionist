@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>SNGCE - Student Dashboard</title>
+    <title>Lement - Exam Form</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -49,9 +49,10 @@
 </head>
 <body>
 <div class="containerS">
+    {% comment %} {{request.user}} {% endcomment %}
     <form method="POST">
    {% csrf_token %}
-        <h1>SREE NARAYANA GURUKULAM COLLEGE OF ENGINEERING</h1>
+        <h1>Lement College Of Advanced Studies</h1>
         <h2>Application For Semester Registration</h2>
         
         <div class="details">
@@ -76,7 +77,7 @@
                 <td><input type="text" name="semester_{{ i }}" ></td>
                 <td><input type="text" name="credits_{{ i }}" ></td>
                 <td><input type="text" name="sgpa_{{ i }}" ></td>
-                <td><input type="text" name="courses_failed_{{ i }}"></td>
+                <td><input type="text" name="failed_courses_{{ i }}"></td>
             </tr>
             {% endfor %}
         </table>

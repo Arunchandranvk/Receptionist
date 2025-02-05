@@ -3,34 +3,67 @@
     {% load static %}
 <head>
     <meta charset="UTF-8">
-    <title>Welcome - SNGCE</title>
-    <link rel="shortcut icon" type="image/icon" href="{% static 'images/college_logo.jpg' %}" style="border-radius: 0.75rem;">    
+    <title>Welcome to Lement</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <style>
         @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.9); }
+            from { opacity: 0; transform: scale(0.95); }
             to { opacity: 1; transform: scale(1); }
         }
+        
         @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
+            from { transform: translateY(30px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .logo-animation {
+            animation: fadeIn 1.5s ease-out, float 3s ease-in-out infinite;
+        }
+        
         .welcome-text {
-            animation: fadeIn 2s ease-out, slideUp 2s ease-out;
+            animation: fadeIn 2s ease-out, slideUp 1.5s ease-out;
+        }
+        
+        .redirect-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
         }
     </style>
 </head>
-<body class="bg-blue-50 flex items-center justify-center min-h-screen">
-    <div class="text-center welcome-text">
-        <img src="{% static 'images/college_logo.jpg' %}" alt="College Logo" class="mx-auto mb-8 rounded-full shadow-lg">
-        <h1 class="text-4xl font-bold text-blue-800 mb-4">Welcome to SNGCE</h1>
-        <p class="text-xl text-blue-600 mb-8">Empowering Minds, Shaping Futures</p>
-        {% comment %} <div class="animate-pulse text-sm text-gray-600">Redirecting to Chatbot in 5 seconds...</div> {% endcomment %}
+<body class="bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center min-h-screen">
+    <div class="text-center p-8 rounded-xl bg-white bg-opacity-90 shadow-lg welcome-text">
+        <div class="logo-animation">
+            <img src="{% static 'images/college_logo.png' %}" alt="College Logo" class="mx-auto mb-8 rounded-lg shadow-md" style="height: 300px; object-fit: contain;">
+        </div>
+        
+        <div class="space-y-4">
+            <h1 class="text-5xl font-bold text-blue-800 mb-4 tracking-tight">
+                Welcome to Lement
+            </h1>
+            <p class="text-2xl text-blue-600 font-medium">
+                College Of Advanced Studies
+            </p>
+            <div class="mt-8">
+                {% comment %} <div class="redirect-pulse text-sm text-gray-600">
+                    Redirecting to Chatbot shortly...
+                </div> {% endcomment %}
+            </div>
+        </div>
     </div>
 
     <script>
         setTimeout(() => {
-            window.location.href = '{% url 'bot' %}';
+            window.location.href = "{% url 'bot' %}";
         }, 5000);
     </script>
 </body>

@@ -2,8 +2,18 @@ from django.shortcuts import render,redirect,get_object_or_404
 from django.views.generic import TemplateView,CreateView,View,UpdateView
 from accounts.models import *
 from adminpage.forms import *
-from django.urls import reverse_lazy
 from django.contrib import messages
+from django.http import HttpResponse,FileResponse
+import os
+from django.conf import settings
+from django.template.loader import render_to_string
+from weasyprint import HTML
+
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 # Create your views here.
 
 
@@ -85,6 +95,8 @@ class NotificationView(TemplateView):
     def get_context_data(self, **kwargs):
         context =  super().get_context_data(**kwargs)
         context['notification'] = Notification.objects.all().order_by('-created_at')
+        stu = Student.objects.get(id=self.request.user.id)
+        context['pdf']=SemesterRegistration.objects.filter(student=stu.std_id)
         return context
     
 # class ExamFormView(View):
@@ -102,6 +114,7 @@ class NotificationView(TemplateView):
 #         }
 #         return render(request, self.template_name, context)
     
+
 #     def post(self, request, *args, **kwargs):
 #         form = StudentForm(request.POST,request.FILES)
 #         if form.is_valid():
@@ -117,16 +130,23 @@ class NotificationView(TemplateView):
 #             }
 #             return render(request, self.template_name, context)
 
-from django.http import HttpResponse
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-import io
-import os
-from django.conf import settings
-from django.template.loader import render_to_string
-from weasyprint import HTML
 
 
+@login_required
+def ChangePasswordView(request):
+    if request.method == "POST":
+        form = PasswordChangeForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Prevents logout after password change
+            messages.success(request, "Your password has been changed successfully!")
+            return redirect("u-profile")  # Redirect to the user's profile or another page
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = PasswordChangeForm(user=request.user)
+    
+    return render(request, "change_password.html", {"form": form})
 
 class SemesterRegistrationView(View):
     template_name = "exam_form.html"
@@ -137,7 +157,7 @@ class SemesterRegistrationView(View):
     def post(self, request, pk):
         def get_value(field_name):
             """Returns None if the field is empty, else returns the field value."""
-            return request.POST.get(field_name) or None
+            return request.POST.get(field_name) or ''
 
         # Get form data
         name = get_value("name")
@@ -146,8 +166,8 @@ class SemesterRegistrationView(View):
         semester = get_value("semester")
         batch = get_value("batch")
         date = get_value("date")
-        stu_mobile= get_value("student_mobile")
-        parent_mobile= get_value("parent_mobile")
+        stu_mobile = get_value("student_mobile")
+        parent_mobile = get_value("parent_mobile")
 
         semester_data = []
         for i in range(1, 8):  # Assuming semesters 1 to 7
@@ -155,7 +175,7 @@ class SemesterRegistrationView(View):
                 "semester": get_value(f"semester_{i}"),
                 "credits_earned": get_value(f"credits_{i}"),
                 "sgpa": get_value(f"sgpa_{i}"),
-                "courses_failed": get_value(f"failed_{i}")
+                "courses_failed": get_value(f"failed_courses_{i}")
             })
 
         course_data = []
@@ -176,22 +196,33 @@ class SemesterRegistrationView(View):
             "date": date,
             "semester_data": semester_data,
             "course_data": course_data,
-            "student_mobile":stu_mobile,
-            "parent_mobile":parent_mobile
+            "student_mobile": stu_mobile,
+            "parent_mobile": parent_mobile
         }
 
+        # Render HTML content for PDF generation
         html_content = render_to_string("exam_form_pdf.html", context)
 
+        # Generate PDF file from HTML content
         pdf_file = HTML(string=html_content).write_pdf()
         pdf_filename = f"semester_registration_{ktu_number}.pdf"
 
+        # Define the path to save the PDF
         pdf_dir = os.path.join(settings.MEDIA_ROOT, "semester_pdfs")
-        os.makedirs(pdf_dir, exist_ok=True) 
+        os.makedirs(pdf_dir, exist_ok=True)
         pdf_path = os.path.join(pdf_dir, pdf_filename)
 
+        # Save the PDF to the server
         with open(pdf_path, 'wb') as f:
             f.write(pdf_file)
+
+        # Prepare HTTP response for downloading the PDF
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{pdf_filename}"'
+
+        # Save the registration and associate it with notification and student
         noti = get_object_or_404(Notification, id=pk)
+        print(request.user.id)
         stu = get_object_or_404(Student, id=request.user.id)
         registration = SemesterRegistration(
             notification_id=noti,
@@ -199,5 +230,13 @@ class SemesterRegistrationView(View):
             pdf_file=f"semester_pdfs/{pdf_filename}" 
         )
         registration.save()
+
+        # Display success message and redirect
         messages.success(request, "Semester registration form submitted and saved as PDF successfully.")
         return redirect("u-notification")
+    
+
+
+def download_pdf(request, filename):
+    pdf_path = os.path.join(settings.MEDIA_ROOT, "semester_pdfs", filename)
+    return FileResponse(open(pdf_path, "rb"), content_type="application/pdf", as_attachment=True)

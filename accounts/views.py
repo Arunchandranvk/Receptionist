@@ -52,33 +52,81 @@ class CourseView(TemplateView):
 
 
 
-RASA_SERVER_URL = "http://localhost:5005/webhooks/rest/webhook"
+# RASA_SERVER_URL = "http://localhost:5005/webhooks/rest/webhook"
 
-@csrf_exempt  # Exempting CSRF for this view (use cautiously in production)
+# @csrf_exempt  # Exempting CSRF for this view (use cautiously in production)
+# def send_message_to_rasa(request):
+#     if request.method == "POST":
+#         try:
+#             # Parse JSON data from the request
+#             data = json.loads(request.body)
+#             user_message = data.get("message")
+#             if not user_message:
+#                 return JsonResponse({"error": "Message is required"}, status=400)
+
+#             # Payload for Rasa
+#             payload = {
+#                 "sender": "default",  # Or get the sender dynamically
+#                 "message": user_message,
+#             }
+
+#             # Send the message to Rasa
+#             response = requests.post(RASA_SERVER_URL, json=payload)
+
+#             # Check if Rasa server responded successfully
+#             if response.status_code != 200:
+#                 return JsonResponse({"error": "Failed to communicate with Rasa server"}, status=response.status_code)
+
+#             # Parse Rasa response
+#             response_data = response.json()
+#             return JsonResponse(response_data, safe=False)
+
+#         except json.JSONDecodeError:
+#             return JsonResponse({"error": "Invalid JSON in request body"}, status=400)
+#         except requests.exceptions.RequestException as e:
+#             return JsonResponse({"error": f"Rasa server error: {str(e)}"}, status=500)
+
+#     return JsonResponse({"error": "Invalid request method"}, status=405)
+
+
+from googletrans import Translator
+
+RASA_SERVER_URL = "http://localhost:5005/webhooks/rest/webhook"
+translator = Translator()
+
+@csrf_exempt
 def send_message_to_rasa(request):
     if request.method == "POST":
         try:
-            # Parse JSON data from the request
             data = json.loads(request.body)
             user_message = data.get("message")
+            selected_lang = data.get("lang", "en")  # Default to English
+
             if not user_message:
                 return JsonResponse({"error": "Message is required"}, status=400)
-
-            # Payload for Rasa
-            payload = {
-                "sender": "default",  # Or get the sender dynamically
-                "message": user_message,
-            }
-
-            # Send the message to Rasa
+            print(selected_lang)
+            # Translate Malayalam to English before sending to Rasa
+            if selected_lang == "ml":
+                translated_message = translator.translate(user_message, src="ml", dest="en").text
+                
+            else:
+                translated_message = user_message
+            print(translated_message)
+            # Send translated message to Rasa
+            payload = {"sender": "default", "message": translated_message}
+            print(payload)
             response = requests.post(RASA_SERVER_URL, json=payload)
-
-            # Check if Rasa server responded successfully
+            print(response)
             if response.status_code != 200:
                 return JsonResponse({"error": "Failed to communicate with Rasa server"}, status=response.status_code)
 
-            # Parse Rasa response
+            # Translate response back to Malayalam if needed
             response_data = response.json()
+            if selected_lang == "ml":
+                for msg in response_data:
+                    print(msg)
+                    msg["text"] = translator.translate(msg["text"], src="en", dest="ml").text
+
             return JsonResponse(response_data, safe=False)
 
         except json.JSONDecodeError:
@@ -87,8 +135,6 @@ def send_message_to_rasa(request):
             return JsonResponse({"error": f"Rasa server error: {str(e)}"}, status=500)
 
     return JsonResponse({"error": "Invalid request method"}, status=405)
-
-
 
 
 # class AddStudent(CreateView):

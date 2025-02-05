@@ -3,7 +3,9 @@
     {% load static %}
 <head>
     <meta charset="UTF-8">
-    <title>SNGCE - Student Dashboard</title>
+    <title> Student Dashboard</title>
+    <link rel="shortcut icon" type="image/icon" href="{% static 'images/college_logo.png' %}" style="border-radius: 0.75rem;">    
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -21,6 +23,23 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
+        .ad-slider {
+            overflow: hidden;
+            position: relative;
+        }
+        .slide {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            position: absolute;
+            width: 100%;
+        }
+        .slide.active {
+            opacity: 1;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -28,7 +47,7 @@
     <header class="hero-gradient text-white py-4 shadow-lg">
         <div class="container mx-auto flex justify-between items-center px-4">
             <div>
-                <a href="{% url 'uh' %}" class="text-2xl font-bold tracking-wide">SNGCE Student Portal</a>
+                <a href="{% url 'uh' %}" class="text-2xl font-bold tracking-wide">Lement Student Portal</a>
             </div>
             <nav>
                 <ul class="flex space-x-6 items-center">
@@ -37,7 +56,7 @@
                     <li><a href="{% url 'u-event' %}" class="hover:text-blue-200 transition-colors">Events</a></li>
                     <li><a href="{% url 'u-notification' %}" class="hover:text-blue-200 transition-colors">Notification</a></li>
                     <li><a href="{% url 'u-course' %}" class="hover:text-blue-200 transition-colors">Courses</a></li>
-                    <li><a href="#" class="hover:text-blue-200 transition-colors">Resources</a></li>
+                    {% comment %} <li><a href="#" class="hover:text-blue-200 transition-colors">Resources</a></li> {% endcomment %}
                     <li>
                         <a href="{% url 'logout' %}" class="bg-white text-purple-700 px-5 py-2 rounded-full hover:bg-blue-50 transition-colors">
                             Logout
@@ -51,7 +70,7 @@
 <main class="container mx-auto mt-12 px-4">
     <section class="grid md:grid-cols-2 gap-12 items-center">
         <div>
-            <h2 class="text-4xl font-bold text-purple-800 mb-6">Welcome to SNGCE</h2>
+            <h2 class="text-4xl font-bold text-purple-800 mb-6">Welcome to Lement</h2>
             <p class="text-gray-700 mb-6 leading-relaxed">
                 At Academic Horizon, we're more than just an educational institution. 
                 We're a community dedicated to nurturing innovative minds, fostering critical thinking, 
@@ -75,13 +94,75 @@
         </div>
         <div>
             <img 
-                src="{% static 'images/sngce.avif' %}" 
-                alt="SNGCE" 
+                src="{% static 'images/lement.jpg' %}" 
+                alt="lement" 
                 class="rounded-2xl shadow-2xl transform hover:scale-105 transition-transform"
             >
         </div>
     </section>
 </main>
+<section class="" style="padding:50px;">
+    {{request.user}}
+    <div class="ad-slider h-44 rounded-xl shadow-lg">
+        <!-- Ad Slide 1 -->
+        <div class="slide active bg-gradient-to-r from-blue-500 to-purple-600 h-full rounded-xl p-8 flex items-center justify-between">
+            <div class="text-white max-w-lg">
+                <h3 class="text-2xl font-bold mb-4">Spring Semester Registration Open!</h3>
+                <p class="mb-6">Register early and get access to premium study materials and exclusive workshops.</p>
+                <button class="bg-white text-purple-600 px-6 py-2 rounded-full hover:bg-blue-50 transition-colors">
+                    Learn More
+                </button>
+            </div>
+            {% comment %} <img src="/api/placeholder/300/200" alt="Registration" class="h-34 rounded-lg shadow-lg"> {% endcomment %}
+        </div>
+
+        <!-- Ad Slide 2 -->
+        <div class="slide bg-gradient-to-r from-green-500 to-teal-600 h-full rounded-xl p-8 flex items-center justify-between">
+            <div class="text-white max-w-lg">
+                <h3 class="text-2xl font-bold mb-4">Campus Career Fair 2025</h3>
+                <p class="mb-6">Connect with top employers and discover exciting career opportunities.</p>
+                {% comment %} <button class="bg-white text-teal-600 px-6 py-2 rounded-full hover:bg-green-50 transition-colors">
+                    Register Now
+                </button> {% endcomment %}
+            </div>
+            {% comment %} <img src="/api/placeholder/300/200" alt="Career Fair" class="h-48 rounded-lg shadow-lg"> {% endcomment %}
+        </div>
+
+        <!-- Ad Slide 3 -->
+        <div class="slide bg-gradient-to-r from-yellow-500 to-teal-600 h-full rounded-xl p-8 flex items-center justify-between">
+            <div class="text-white max-w-lg">
+                <h3 class="text-2xl font-bold mb-4">New Learning Resources Available</h3>
+                <p class="mb-6">Access our updated library of online courses and study materials.</p>
+                {% comment %} <button class="bg-white text-red-600 px-6 py-2 rounded-full hover:bg-orange-50 transition-colors">
+                    Explore Now
+                </button> {% endcomment %}
+            </div>
+            {% comment %} <img src="/api/placeholder/300/200" alt="Learning Resources" class="h-48 rounded-lg shadow-lg"> {% endcomment %}
+        </div>
+    </div>
+</section>
+
+
+<script>
+// Ad Slider functionality
+const slides = document.querySelectorAll('.slide');
+let currentSlide = 0;
+
+function showSlide(index) {
+    slides.forEach(slide => {
+        slide.classList.remove('active');
+    });
+    slides[index].classList.add('active');
+}
+
+function nextSlide() {
+    currentSlide = (currentSlide + 1) % slides.length;
+    showSlide(currentSlide);
+}
+
+// Change slide every 5 seconds
+setInterval(nextSlide, 5000);
+</script>
 {% endblock %}
 </body>
 </html>

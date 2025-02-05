@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SNGCE - Enquiry Chatbot</title>
-    <link rel="shortcut icon" type="image/icon" href="{% static 'images/college_logo.jpg' %}" style="border-radius: 0.75rem;">    
+    <title>Enquiry Chatbot</title>
+    <link rel="shortcut icon" type="image/icon" href="{% static 'images/college_logo.png' %}" style="border-radius: 0.75rem;">    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token }}">
@@ -38,11 +38,11 @@
     <div class="bg-white w-full rounded-2xl shadow-2xl overflow-hidden" style="width:2000px;">
         <div class="bg-gradient-to-r from-purple-600 to-blue-300 p-6 text-white">
             <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-bold">SNGCE Chatbot</h2>
+                <h2 class="text-2xl font-bold">Lement College Of Advanced Studies Chatbot</h2>
                 <i class="fas fa-robot text-3xl"></i>
             </div>
             <p class="text-sm text-gray-100 mt-2">
-                Your intelligent guide SNGCE
+                Your intelligent guide Lement
             </p>
         </div>
 
@@ -50,7 +50,7 @@
             <div class="flex items-start mb-4">
                 <div class="bg-gray-200 p-3 rounded-lg max-w-[80%]">
                     <p class="text-gray-800">
-                        Hi there! I'm the Innovation University chatbot. How can I help you today?
+                        Hi there! I'm the Innovation  chatbot. How can I help you today?
                     </p>
                     <span class="text-xs text-gray-500 block mt-1">Bot • Just now</span>
                 </div>
@@ -58,6 +58,10 @@
         </div>
 
         <div class="border-t p-4 bg-gray-50 flex space-x-2">
+            <select id="languageSelect" class="p-2 border rounded">
+                <option value="en" selected>English</option>
+                <option value="ml">Malayalam</option>
+            </select>
             <input 
                 type="text" 
                 id="userMessage" 
@@ -71,6 +75,9 @@
                 <i class="fas fa-paper-plane"></i>
             </button>
         </div>
+        
+       
+        
 
         <div class="p-4 text-center bg-gray-100">
             <a 
@@ -95,41 +102,39 @@
         const userMessageInput = document.getElementById("userMessage");
 
         async function sendMessage() {
-            console.log("neww",userMessageInput)
-            const message = userMessageInput.value.trim();
-            if (!message) return;
-
-            // Add user message to chat
-            addMessage("user", message);
-
-            // Clear input field
-            userMessageInput.value = "";
-
-            try {
-                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                const response = await fetch("{% url 'send_message_to_rasa' %}", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken, 
-                    },
-                    body: JSON.stringify({ message }),
-                });
-
-                if (!response.ok) {
-                    throw new Error("Failed to send message");
+                const message = document.getElementById("userMessage").value.trim();
+                const selectedLang = document.getElementById("languageSelect").value;
+                if (!message) return;
+        
+                addMessage("user", message);
+                document.getElementById("userMessage").value = "";
+        
+                try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    
+                    // Send message with language selection
+                    const response = await fetch("{% url 'send_message_to_rasa' %}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": csrfToken, 
+                        },
+                        body: JSON.stringify({ message, lang: selectedLang }),
+                    });
+        
+                    if (!response.ok) {
+                        throw new Error("Failed to send message");
+                    }
+        
+                    const botResponses = await response.json();
+                    botResponses.forEach((botResponse) => {
+                        addMessage("bot", botResponse.text);
+                    });
+                } catch (error) {
+                    console.error("Error:", error);
+                    addMessage("bot", "Sorry, something went wrong. Please try again.");
                 }
-
-                const botResponses = await response.json();
-                botResponses.forEach((botResponse) => {
-                    addMessage("bot", botResponse.text);
-                });
-            } catch (error) {
-                console.error("Error:", error);
-                addMessage("bot", "Sorry, something went wrong. Please try again.");
             }
-        }
-
         function addMessage(sender, text) {
             const messageDiv = document.createElement("div");
             messageDiv.classList.add("message", sender, "mb-4");

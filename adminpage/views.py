@@ -18,6 +18,10 @@ class AdminHomeView(TemplateView):
 
 class FacultyView(TemplateView):
     template_name='faculty_view.html'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['fac']=Faculty.objects.all()
+        return context
 
 
 
@@ -91,6 +95,7 @@ def StudentDeleteView(req,pk):
     stu = Student.objects.get(id=pk)
     stu.delete()
     return redirect('student')
+
 
 class DepartmentView(TemplateView):
     template_name = 'department.html'
@@ -251,3 +256,12 @@ def NotificationDeleteView(req,pk):
     noti = Notification.objects.get(id=pk)
     noti.delete()
     return redirect('notification')
+
+
+class FormResponse(TemplateView):
+    template_name='response.html'
+    def get_context_data(self, **kwargs):
+        context =  super().get_context_data(**kwargs)
+        id=kwargs.get('pk')
+        context['notifications'] = SemesterRegistration.objects.filter(notification_id=id)
+        return context

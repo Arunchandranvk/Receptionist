@@ -3,8 +3,8 @@
     {% load static %}
 <head>
     <meta charset="UTF-8">
-    <title>SNGCE - Admin Dashboard</title>
-    <link rel="shortcut icon" type="image/icon" href="{% static 'images/college_logo.jpg' %}" style="border-radius: 0.75rem;">   
+    <title> Admin Dashboard</title>
+    <link rel="shortcut icon" type="image/icon" href="{% static 'images/college_logo.png' %}" style="border-radius: 0.75rem;">    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -43,8 +43,8 @@
     <aside class="sidebar fixed h-full bg-gray-900 text-white" style="overflow-y:scroll;scrollbar-width: none;">
         <div class="p-4">
             <div class="text-center mb-8">
-                <img src="{% static 'images/college_logo.jpg' %}" alt="SNGCE Logo" class="mx-auto rounded-lg mb-2">
-                <h1 class="text-xl font-bold">SNGCE Admin</h1>
+                <img src="{% static 'images/college_logos.jpg' %}" alt="Lement Logo" class="mx-auto rounded-lg mb-2">
+                <h1 class="text-xl font-bold">Lement Admin</h1>
             </div>
             
             <nav class="space-y-2">
@@ -61,8 +61,8 @@
                 {% comment %} <a href="#student-add" class="block px-4 py-2 rounded hover:bg-blue-600">Add Student</a> {% endcomment %}
 
                 <!-- Teacher Management -->
-                {% comment %} <div class="px-4 py-2 text-gray-400 text-xs uppercase mt-4">Teachers</div>
-                <a href="{% url 'faculty' %}" class="block px-4 py-2 rounded hover:bg-blue-600">View Faculty</a> {% endcomment %}
+                <div class="px-4 py-2 text-gray-400 text-xs uppercase mt-4">Teachers</div>
+                <a href="{% url 'faculty' %}" class="block px-4 py-2 rounded hover:bg-blue-600">View Faculty</a> 
                 {% comment %} <a href="#teacher-add" class="block px-4 py-2 rounded hover:bg-blue-600">Add Teacher</a> {% endcomment %}
 
                 <!-- Department Management -->

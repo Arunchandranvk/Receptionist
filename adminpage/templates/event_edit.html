@@ -49,7 +49,7 @@
                             </div>
                             <div class="col-span-2">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Event Banner</label>
-                                <input type="file" class="w-full border rounded p-2" name="img">
+                                <input type="file" class="w-full border rounded p-2" name="img" accept="image/*">
                                 {% if event.img %}
                                     <p class="text-sm text-gray-500 mt-1">Current file: <a href="{{ event.img.url }}" target="_blank" class="text-blue-500 underline">View</a></p>
                                 {% endif %}
