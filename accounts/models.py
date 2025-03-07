@@ -125,3 +125,16 @@ class Notification(models.Model):
 
     def __str__(self):
         return self.title
+
+class Enquiry(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Enquiry from {self.name} ({self.created_at.strftime('%Y-%m-%d')})"
+    
+    class Meta:
+        verbose_name_plural = "Enquiries"
+        ordering = ['-created_at']

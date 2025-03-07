@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth import authenticate
+from .models import *
 
 class LogForm(forms.Form):
     email = forms.EmailField()
@@ -20,3 +21,14 @@ class LogForm(forms.Form):
 
         cleaned_data['user'] = user  # Save the user object for later use
         return cleaned_data
+
+
+class EnquiryForm(forms.ModelForm):
+    class Meta:
+        model = Enquiry
+        fields = ['name', 'email', 'message']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600', 'placeholder': 'Your Name'}),
+            'email': forms.EmailInput(attrs={'class': 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600', 'placeholder': 'Your Email'}),
+            'message': forms.Textarea(attrs={'class': 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600', 'placeholder': 'Your Message', 'rows': 5}),
+        }

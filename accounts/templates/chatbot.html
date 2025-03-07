@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SNGCE - Enquiry Chatbot</title>
-    <link rel="shortcut icon" type="image/icon" href="{% static 'images/college_logo.jpg' %}" style="border-radius: 0.75rem;">    
+    <title>Enquiry Chatbot</title>
+    <link rel="shortcut icon" type="image/icon" href="{% static 'images/college_logo.png' %}" style="border-radius: 0.75rem;">    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token }}">
@@ -38,7 +38,7 @@
     <div class="bg-white w-full rounded-2xl shadow-2xl overflow-hidden" style="width:2000px;">
         <div class="bg-gradient-to-r from-purple-600 to-blue-300 p-6 text-white">
             <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-bold">SNGCE Chatbot</h2>
+                <h2 class="text-2xl font-bold">Sree Narayana Gurukulam College of Engineering Chatbot</h2>
                 <i class="fas fa-robot text-3xl"></i>
             </div>
             <p class="text-sm text-gray-100 mt-2">
@@ -50,7 +50,7 @@
             <div class="flex items-start mb-4">
                 <div class="bg-gray-200 p-3 rounded-lg max-w-[80%]">
                     <p class="text-gray-800">
-                        Hi there! I'm the Innovation University chatbot. How can I help you today?
+                        Hi there! I'm the Innovation chatbot. How can I help you today?
                     </p>
                     <span class="text-xs text-gray-500 block mt-1">Bot • Just now</span>
                 </div>
@@ -58,6 +58,10 @@
         </div>
 
         <div class="border-t p-4 bg-gray-50 flex space-x-2">
+            <select id="languageSelect" class="p-2 border rounded">
+                <option value="en" selected>English</option>
+                <option value="ml">Malayalam</option>
+            </select>
             <input 
                 type="text" 
                 id="userMessage" 
@@ -71,7 +75,7 @@
                 <i class="fas fa-paper-plane"></i>
             </button>
         </div>
-
+        
         <div class="p-4 text-center bg-gray-100">
             <a 
                 href="{% url 'h' %}" 
@@ -84,79 +88,116 @@
     </div>
 
     <script>
-         document.getElementById('userMessage').addEventListener('keydown', function (event) {
+        const chatMessages = document.getElementById("chatMessages");
+        const userMessageInput = document.getElementById("userMessage");
+        async function sendMessage() {
+            const userMessage = userMessageInput.value.trim();
+            if (userMessage === "") return;
+        
+            displayMessage(userMessage, "user");
+        
+            userMessageInput.value = "";
+        
+            try {
+                const response = await fetch("{% url 'chatbot' %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
+                    },
+                    body: JSON.stringify({ message: userMessage })
+                });
+        
+                const data = await response.json();
+                displayMessage(data.response, "bot");
+            } catch (error) {
+                console.error("Error:", error);
+                displayMessage("Something went wrong. Please try again.", "bot");
+            }
+        }
+        
+        document.getElementById('userMessage').addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
                 event.preventDefault(); // Prevent form submission or default behavior
                 sendMessage(); // Trigger the sendMessage function
             }
         });
 
-        const chatMessages = document.getElementById("chatMessages");
-        const userMessageInput = document.getElementById("userMessage");
+        
 
-        async function sendMessage() {
-            console.log("neww",userMessageInput)
-            const message = userMessageInput.value.trim();
-            if (!message) return;
 
-            // Add user message to chat
-            addMessage("user", message);
-
-            // Clear input field
-            userMessageInput.value = "";
-
-            try {
-                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                const response = await fetch("{% url 'send_message_to_rasa' %}", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken, 
-                    },
-                    body: JSON.stringify({ message }),
-                });
-
-                if (!response.ok) {
-                    throw new Error("Failed to send message");
-                }
-
-                const botResponses = await response.json();
-                botResponses.forEach((botResponse) => {
-                    addMessage("bot", botResponse.text);
-                });
-            } catch (error) {
-                console.error("Error:", error);
-                addMessage("bot", "Sorry, something went wrong. Please try again.");
+        function displayMessage(message, sender) {
+            const messageElement = document.createElement("div");
+            messageElement.classList.add("flex", "items-start", "mb-4");
+        
+            // If the sender is the user, align the message to the right
+            if (sender === "user") {
+                messageElement.classList.add("justify-end"); // Align to the right
             }
+        
+            const messageBubble = document.createElement("div");
+            messageBubble.classList.add(sender === "user" ? "bg-blue-200" : "bg-gray-200", "p-3", "rounded-lg", "max-w-[80%]");
+            messageBubble.innerHTML = `<p class="text-gray-800">${message}</p>`;
+        
+            messageElement.appendChild(messageBubble);
+            chatMessages.appendChild(messageElement);
+        
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the bottom
         }
+        
+        function getBotResponse(userMessage) {
+            const faq =  {
+                
+                "How are you?": "I'm just a bot, but I'm here to help you!",
+                "Thank you": "You're welcome! Let me know if you need anything else.",
+                "Thanks": "No problem! Happy to help.",
+                "What is the full name of the college?": "The full name of our college is Sree Narayana Gurukulam College of Engineering.",
+                "Where is the college located?": "The college is located in Kerala, India.",
+                "What are the office hours of the college?": "The college office is open from 9:00 AM to 5:00 PM, Monday to Saturday.",
+                "How can I contact the college?": "You can contact us via phone at [insert phone number] or email at [insert email address].",
+                "What is the official website of the college?": "The official website is [insert website link].",
+                "How can I apply for admission?": "You can apply online through our website or visit the admission office for offline applications.",
+                "What are the eligibility criteria for B.Tech admission?": "You need to have passed 12th grade with Physics, Chemistry, and Mathematics, and qualify for entrance exams like KEAM/JEE.",
+                "Is there any entrance exam for admission?": "Yes, KEAM and JEE are accepted for B.Tech admissions. Other courses may have different requirements.",
+                "What documents are required for admission?": "You need to submit 10th & 12th mark sheets, entrance exam scores, transfer certificate, ID proof, and passport-size photos.",
+                "What is the last date to apply for admission?": "The last date varies every year. Please check the official website for the latest updates.",
+                "What courses does the college offer?": "The college offers B.Tech, M.Tech, MBA, and other programs in various disciplines.",
+                "Which engineering branches are available?": "We have Computer Science, Mechanical, Civil, Electrical, and Electronics & Communication Engineering.",
+                "Is there a management quota for admission?": "Yes, a certain percentage of seats are reserved under the management quota.",
+                "Does the college offer Ph.D. programs?": "No, currently we offer undergraduate and postgraduate courses only.",
+                "Are there any diploma courses available?": "No, the college currently focuses on degree programs.",
+                "What is the tuition fee for B.Tech courses?": "The fee structure varies by branch. You can check the detailed fee structure on our website.",
+                "Does the college offer scholarships?": "Yes, we offer merit-based and need-based scholarships.",
+                "How can I apply for a scholarship?": "You need to fill out the scholarship application form and provide necessary documents such as academic records and income certificates.",
+                "Are there any fee concessions for economically weaker students?": "Yes, we offer fee concessions based on government norms and college policies.",
+                "Can I pay the fees in installments?": "Yes, installment options are available. Please contact the accounts department for details.",
+                "Does the college have a hostel facility?": "Yes, we have separate hostels for boys and girls with all necessary amenities.",
+                "What are the hostel fees?": "The hostel fees depend on room type and facilities. You can check the details on our website.",
+                "Is there a library on campus?": "Yes, our library has a vast collection of books, journals, and digital resources.",
+                "Does the college have Wi-Fi?": "Yes, the entire campus is Wi-Fi enabled.",
+                "Are there sports facilities in the college?": "Yes, we have facilities for cricket, football, basketball, badminton, and indoor games.",
+                "Does the college provide placement assistance?": "Yes, our placement cell assists students in securing jobs and internships.",
+                "Which companies visit the college for placements?": "Companies like Infosys, TCS, Wipro, and other MNCs participate in our placement drives.",
+                "What is the highest package offered in placements?": "The highest package varies yearly but is usually around [mention latest package details].",
+                "Is there an internship program in the college?": "Yes, we have tie-ups with several companies for internships.",
+                "What is the duration of the B.Tech course?": "The B.Tech course duration is 4 years.",
+                "What are the hostel facilities available?": "We offer both AC and non-AC rooms with 24/7 water and electricity supply.",
+                "Are there transport facilities from the college?": "Yes, we provide college buses from various locations to the campus.",
+                "Does the college offer any online courses?": "Currently, we offer only offline courses, but we are planning to introduce online courses in the future.",
+                "How can I know about the college events and activities?": "You can check our college website, notice boards, or follow us on social media for updates.",
+                "What is the admission process for MBA?": "The MBA admission process includes entrance exams like CAT, MAT, or KMAT and personal interviews.",
+                "How can I contact the hostel?": "You can contact the hostel warden or the college administration for hostel inquiries.",
+                "What is the curriculum for the Computer Science Engineering branch?": "The curriculum covers programming languages, data structures, algorithms, networking, databases, and more.",
+                "Is there any fee refund policy?": "Yes, the fee refund policy is available as per the guidelines issued by the college and government.",
+                "Can I get a transcript from the college?": "Yes, you can request for a transcript by filling out the application form in the college office.",
+                "Does the college have an alumni association?": "Yes, we have an active alumni association that conducts regular events and meets.",
+                "What extra-curricular activities does the college offer?": "The college offers various clubs and activities such as music, dance, drama, debating, and technical clubs.",
+                "Does the college provide any online courses for students?": "Currently, all courses are offline, but we are planning to introduce online courses in the near future.",
+                "Can I join any club in the college?": "Yes, you can join any club based on your interests. Visit the student activities office for more details."
+            };
 
-        function addMessage(sender, text) {
-            const messageDiv = document.createElement("div");
-            messageDiv.classList.add("message", sender, "mb-4");
-
-            const innerHTML =
-                sender === "user"
-                    ? `<div class="flex justify-end">
-                        <div class="bg-blue-500 text-white p-3 rounded-lg max-w-[80%]">
-                            <p>${text}</p>
-                            <span class="text-xs text-blue-100 block mt-1">You • Just now</span>
-                        </div>
-                      </div>`
-                    : `<div class="flex items-start">
-                        <div class="bg-gray-200 p-3 rounded-lg max-w-[80%]">
-                            <p class="text-gray-800">${text}</p>
-                            <span class="text-xs text-gray-500 block mt-1">Bot • Just now</span>
-                        </div>
-                      </div>`;
-
-            messageDiv.innerHTML = innerHTML;
-            chatMessages.appendChild(messageDiv);
-
-            // Scroll to the latest message
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return faq[userMessage] || "I'm sorry, I didn't quite catch that. Could you please ask something else?";
         }
-
-       
     </script>
 </body>
 </html>
