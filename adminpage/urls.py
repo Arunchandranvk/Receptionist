@@ -4,10 +4,13 @@ from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('admin-home/',AdminHomeView.as_view(),name='ah'),
-    path('faculty/',FacultyView.as_view(),name='faculty'),
+    path('faculty/', FacultyView.as_view(), name='faculty'),
+    path('faculty/add/', AddTeacherView.as_view(), name='add_teacher'),
+    path('faculty/delete/<int:pk>/', DeleteTeacherView.as_view(), name='delete_teacher'),
     path('student/',StudentView.as_view(),name='student'),
     path('student/<int:pk>/',StudentPUTView.as_view(),name='student-update'),
     path('student-delete/<int:pk>/',StudentDeleteView,name='student-delete'),
+    path('faculty-delete/<int:pk>/',FacultyDeleteView,name='faculty-delete'),
     path('event/',EventView.as_view(),name='event'),
     path('event/<int:pk>/',EventPUTView.as_view(),name='event-update'),
     path('event-delete/<int:pk>/',EventDeleteView,name='event-delete'),

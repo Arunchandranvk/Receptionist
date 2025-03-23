@@ -139,3 +139,35 @@ class Enquiry(models.Model):
     class Meta:
         verbose_name_plural = "Enquiries"
         ordering = ['-created_at']
+        
+        
+        
+
+class Teacher(CustomUser):
+    DEPARTMENT_CHOICES = (
+        ('Computer Science', 'Computer Science'),
+        ('Mechanical', 'Mechanical'),
+        ('Civil', 'Civil'),
+        ('Electrical', 'Electrical'),
+        ('Electronics', 'Electronics'),
+    )
+    
+    DESIGNATION_CHOICES = (
+        ('Professor', 'Professor'),
+        ('Associate Professor', 'Associate Professor'),
+        ('Assistant Professor', 'Assistant Professor'),
+        ('Lecturer', 'Lecturer'),
+    )
+    
+    teacher_id = models.CharField(max_length=10, unique=True)
+
+    phone = models.CharField(max_length=15)
+    department=models.ForeignKey(Department,on_delete=models.CASCADE)
+    designation = models.CharField(max_length=50, choices=DESIGNATION_CHOICES)
+    profile_picture = models.ImageField(upload_to='teacher_profiles/', null=True, blank=True)
+    join_date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.name} ({self.teacher_id})"

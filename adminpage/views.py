@@ -1,9 +1,10 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from django.views.generic import TemplateView,CreateView,View,UpdateView
+from django.views.generic import TemplateView,CreateView,View,UpdateView,ListView
 from accounts.models import *
 from .forms import *
 from django.urls import reverse_lazy
 from django.contrib import messages
+from django.http import JsonResponse
 # Create your views here.
 
 
@@ -91,6 +92,11 @@ def StudentDeleteView(req,pk):
     stu = Student.objects.get(id=pk)
     stu.delete()
     return redirect('student')
+
+def FacultyDeleteView(req,pk):
+    stu = Teacher.objects.get(id=pk)
+    stu.delete()
+    return redirect('faculty')
 
 class DepartmentView(TemplateView):
     template_name = 'department.html'
@@ -251,3 +257,62 @@ def NotificationDeleteView(req,pk):
     noti = Notification.objects.get(id=pk)
     noti.delete()
     return redirect('notification')
+
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+class FacultyView(LoginRequiredMixin, ListView):
+    model = Teacher
+    template_name = 'faculty_view.html'
+    context_object_name = 'teachers'
+    
+    def get_queryset(self):
+        queryset = Teacher.objects.all()
+        search_query = self.request.GET.get('search', '')
+        department = self.request.GET.get('department', '')
+        
+        if search_query:
+            queryset = queryset.filter(name__icontains=search_query)
+        
+        if department and department != 'All Departments':
+            queryset = queryset.filter(department=department)
+            
+        return queryset
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['departments'] = Teacher.objects.values_list('department', flat=True).distinct()
+        context['form'] = TeacherForm()
+        return context
+
+class AddTeacherView(LoginRequiredMixin, View):
+    def post(self, request):
+        form = TeacherForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Teacher added successfully!")
+            return redirect('faculty')
+        else:
+            # If form is invalid, return to faculty view with form errors
+            teachers = Teacher.objects.all()
+            departments = Teacher.objects.values_list('department', flat=True).distinct()
+            return render(request, 'faculty_view.html', {
+                'teachers': teachers,
+                'departments': departments,
+                'form': form
+            })
+
+class DeleteTeacherView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        teacher = get_object_or_404(Teacher, pk=pk)
+        teacher.delete()
+        messages.success(request, "Teacher deleted successfully!")
+        return redirect('faculty_view')
+        
+    def delete(self, request, pk):
+        # For AJAX deletion
+        try:
+            teacher = get_object_or_404(Teacher, pk=pk)
+            teacher.delete()
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
