@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect
-from django.views.generic import TemplateView,FormView
+from django.views.generic import TemplateView,FormView,View
 from django.contrib.auth.views import LoginView
 import requests
 from django.http import JsonResponse
@@ -7,8 +7,16 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import logout as auth_logout
 
-from django.contrib.auth import authenticate,login,logout
+from django.contrib.auth import login
 from .forms import *
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.contrib.auth.tokens import default_token_generator
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.conf import settings
 # Create your views here.
 
 
@@ -22,18 +30,80 @@ class CustomLoginView(LoginView):
     form_class = LogForm
 
     def form_valid(self, form):
-        user = form.cleaned_data['user']
-        print(user)
-        login(self.request, user)  # Logs the user in
+        user = form.cleaned_data['user'] 
+        if not user.is_verified:
+            self.request.session['pending_verification_email'] = user.email
+            return redirect('send_verification')  
+        login(self.request, user)
         if user.is_superuser:
-            return redirect('ah')  # Redirect for superusers
+            return redirect('ah')  
         else:
-            return redirect('uh')  # Redirect for normal users
-
+            return redirect('uh') 
     def form_invalid(self, form):
         return self.render_to_response(self.get_context_data(form=form))
 
 
+def send_verification_email(user, request):
+    """Send verification email to user"""
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    
+    verification_url = request.build_absolute_uri(
+        reverse('verify_email', kwargs={'uidb64': uid, 'token': token})
+    )
+    
+    subject = 'Verify your SNGCE account'
+    message = render_to_string('verification_email.html', {
+        'user': user,
+        'verification_url': verification_url,
+    })
+    
+    send_mail(
+        subject,
+        message,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+        html_message=message,
+    )
+
+
+class SendVerificationView(View):
+    """View to send verification email"""
+    def get(self, request):
+        # Get email from session
+        email = request.session.get('pending_verification_email')
+        
+        if not email:
+            return redirect('login')
+            
+        try:
+            user = CustomUser.objects.get(email=email)
+            send_verification_email(user, request)
+            return render(request, 'verification_sent.html', {'email': email})
+        except CustomUser.DoesNotExist:
+            return redirect('login')
+
+
+class VerifyEmailView(View):
+    """View to verify email via token link"""
+    def get(self, request, uidb64, token):
+        try:
+            # Decode the user ID
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = CustomUser.objects.get(pk=uid)
+            if default_token_generator.check_token(user, token):
+                user.is_verified = True
+                user.save()
+                login(request, user)
+                if user.is_superuser:
+                    return redirect('ah')
+                else:
+                    return redirect('uh')
+            else:
+                return render(request, 'verification_failed.html')
+                
+        except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
+            return render(request, 'verification_failed.html')
 
 class MainHomeView(TemplateView):
     template_name='mainhome.html'
@@ -140,8 +210,276 @@ class HomeView(TemplateView):
     template_name='home.html'
 
 
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import TemplateView
+import json
+import os
+from .pdf import PDFChatbot
+from django.conf import settings
+# chatbot.py
+import os
+from dotenv import load_dotenv
+from pypdf import PdfReader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.vectorstores import FAISS
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain_groq import ChatGroq
+from langchain.chains import ConversationalRetrievalChain
+from langchain.memory import ConversationBufferMemory
+import logging
+import pdfplumber
+# Configure logging
+logging.basicConfig(level=logging.INFO, 
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# Load environment variables
+load_dotenv()
+GROQ_API_KEY = "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"
+
+# Fallback to using Claude API if GROQ is not available
+
+# PDF directory path - adjust this based on your Django project structure
+PDF_PATH = "College_FAQ"
+
+class PDFChatbot:
+    def __init__(self):
+        self.vectorstore = None
+        self.memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
+        self.process_pdfs()
+        
+    def process_pdfs(self):
+        """Process all PDFs in the specified directory"""
+        logger.info(f"Processing PDFs from {PDF_PATH}")
+        
+        if not os.path.exists(PDF_PATH):
+            logger.warning(f"PDF directory {PDF_PATH} does not exist")
+            os.makedirs(PDF_PATH, exist_ok=True)
+            return
+            
+        pdf_text = ""
+        pdf_count = 0
+        
+        # Get all PDF files from the directory
+        for file in os.listdir(PDF_PATH):
+            if file.endswith('.pdf'):
+                file_path = os.path.join(PDF_PATH, file)
+                logger.info(f"Processing PDF: {file_path}")
+                extracted_text = self.extract_text_from_pdf(file_path)
+                pdf_text += extracted_text
+                pdf_count += 1
+                
+        logger.info(f"Processed {pdf_count} PDF files")
+        
+        # Process text if PDFs were found
+        if pdf_text:
+            text_chunks = self.get_text_chunks(pdf_text)
+            logger.info(f"Created {len(text_chunks)} text chunks")
+            self.vectorstore = self.get_vectorstore(text_chunks)
+            logger.info("Vector store created successfully")
+        else:
+            logger.warning("No PDF text was extracted")
+    
+    def extract_text_from_pdf(self, pdf_path):
+        """Extract text from a single PDF file using pdfplumber for better accuracy"""
+        text = ""
+        try:
+            with pdfplumber.open(pdf_path) as pdf:
+                for page in pdf.pages:
+                    page_text = page.extract_text()
+                    if page_text:
+                        text += page_text + "\n"
+        except Exception as e:
+            logger.error(f"Error processing {pdf_path}: {e}")
+        return text
+        
+    def get_text_chunks(self, text):
+        """Split text into chunks"""
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=200,
+            length_function=len
+        )
+        chunks = text_splitter.split_text(text)
+        return chunks
+        
+    def get_vectorstore(self, text_chunks):
+        """Create vector store from text chunks"""
+        try:
+            embeddings = HuggingFaceEmbeddings(
+                model_name="sentence-transformers/all-MiniLM-L6-v2",
+                model_kwargs={'device': 'cpu'}
+            )
+            vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
+            return vectorstore
+        except Exception as e:
+            logger.error(f"Error creating vector store: {e}")
+            return None
+            
+    def get_conversation_chain(self):
+        """Create conversation chain with LLM using Groq API"""
+        if not self.vectorstore:
+            logger.warning("No vector store available")
+            return None
+            
+        try:
+            # Try to use Groq first, or fall back to a local model
+            if GROQ_API_KEY:
+                logger.info("Using Groq LLM")
+                llm = ChatGroq(
+                    api_key=GROQ_API_KEY,
+                    model_name="llama3-8b-8192",
+                    temperature=0.1
+                )
+            # else:
+            #     logger.info("Using fallback Claude API or local model")
+            #     # Fallback to local model or other API
+            #     llm = SomeOtherLLM()
+                
+            # Create a conversational retriever that queries the vectorstore
+            conversation_chain = ConversationalRetrievalChain.from_llm(
+                llm=llm,
+                retriever=self.vectorstore.as_retriever(),
+                memory=self.memory
+            )
+            return conversation_chain
+        except Exception as e:
+            logger.error(f"Error creating conversation chain: {e}")
+            return None
+
+            
+    def ask_question(self, question):
+        """Ask a question and get a more accurate response"""
+        logger.info(f"Question received: {question}")
+        
+        if not self.vectorstore:
+            return "I don't have any college information loaded yet. Please contact the administrator to load the documents."
+        
+        conversation_chain = self.get_conversation_chain()
+        if not conversation_chain:
+            return "I'm having trouble accessing my knowledge. Please try again later."
+        
+        try:
+            response = conversation_chain({"question": question})
+            
+            # If the response is too vague, trigger a fallback mechanism
+            if "confidence" in response and response["confidence"] < 0.5:
+                logger.warning("Low confidence in the response. Triggering fallback.")
+                return "I'm not sure about that. Can you please rephrase or try another question?"
+            
+            logger.info("Response generated successfully")
+            return response["answer"]
+        except Exception as e:
+            logger.error(f"Error generating response: {e}")
+            return f"I apologize, but I couldn't process your question at this time. Please try again later."
+
 class ChatbotView(TemplateView):
-    template_name='chatbot.html'
+    template_name = 'chatbot.html'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
+
+@csrf_exempt
+def chatbot_api(request):
+    """API endpoint for chatbot interactions"""
+    if request.method == 'POST':
+        
+        try:
+            data = json.loads(request.body)
+            message = data.get('message', '')
+            language = data.get('language', 'en')
+            print(language)
+            print(",,,", message)
+            if not message:
+                return JsonResponse({'error': 'No message provided'}, status=400)
+            
+            # Instantiate the chatbot here
+            chatbot = PDFChatbot()  # Create an instance of PDFChatbot
+            
+            # Check if we should use PDF knowledge or FAQ data
+            if message:
+                # Use PDF knowledge base
+                try:
+                    print("000000")
+                    response = chatbot.ask_question(message)  # Use the chatbot instance here
+                    print("--", response)
+                except Exception as e:
+                    print(e)
+            
+            # Translate response if needed
+            if language != 'en':
+                print("lang",language)
+                response = translate_text(response, target_language=language)
+                
+            return JsonResponse({'response': response})
+            
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+            
+    return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
+
+
+def get_faq_response(message):
+    """Get responses from predefined FAQ data"""
+    # Simplified FAQ dictionary - can be expanded or moved to database
+    faq = {
+        "how are you": "I'm just a bot, but I'm here to help you!",
+        "thank you": "You're welcome! Let me know if you need anything else.",
+        "thanks": "No problem! Happy to help.",
+        "college name": "The full name of our college is Sree Narayana Gurukulam College of Engineering.",
+        "location": "The college is located in Kadayiruppu, Kolenchery, Kerala, India.",
+        "office hours": "The college office is open from 9:00 AM to 5:00 PM, Monday to Saturday.",
+        "contact": "You can contact us via phone at +91-484-2764841 or email at info@sngce.ac.in.",
+        "website": "The official website is https://www.sngce.ac.in/",
+        "admission": "You can apply online through our website or visit the admission office for offline applications.",
+        "eligibility": "For B.Tech admission, you need to have passed 12th grade with Physics, Chemistry, and Mathematics, and qualify for entrance exams like KEAM/JEE.",
+        "entrance exam": "Yes, KEAM and JEE are accepted for B.Tech admissions. Other courses may have different requirements.",
+        "documents": "You need to submit 10th & 12th mark sheets, entrance exam scores, transfer certificate, ID proof, and passport-size photos.",
+        "courses": "The college offers B.Tech, M.Tech, MBA, and other programs in various disciplines.",
+        "branches": "We have Computer Science, Mechanical, Civil, Electrical, and Electronics & Communication Engineering.",
+        "management quota": "Yes, a certain percentage of seats are reserved under the management quota.",
+        "phd": "No, currently we offer undergraduate and postgraduate courses only.",
+        "fees": "The fee structure varies by branch. Please check the detailed fee structure on our website.",
+        "scholarship": "Yes, we offer merit-based and need-based scholarships.",
+        "hostel": "Yes, we have separate hostels for boys and girls with all necessary amenities.",
+        "library": "Yes, our library has a vast collection of books, journals, and digital resources.",
+        "wifi": "Yes, the entire campus is Wi-Fi enabled.",
+        "sports": "Yes, we have facilities for cricket, football, basketball, badminton, and indoor games.",
+        "placement": "Yes, our placement cell assists students in securing jobs and internships.",
+        "companies": "Companies like Infosys, TCS, Wipro, and other MNCs participate in our placement drives.",
+        "transport": "Yes, we provide college buses from various locations to the campus.",
+        "events": "You can check our college website, notice boards, or follow us on social media for updates."
+    }
+    
+    # Process input message
+    message = message.lower().strip()
+    
+    # Check for keyword matches
+    for key, value in faq.items():
+        if key in message:
+            return value
+    
+    # If no match is found
+    return "I'm sorry, I didn't have an answer for that specific question. Could you please rephrase or ask something else about SNGCE?"
+from deep_translator import GoogleTranslator
+
+# Initialize the translator
+translator = GoogleTranslator(target="ml")
+
+def translate_text(text, target_language):
+    """
+    Translate text to target language.
+    Currently, it uses Google Translator API for actual translation.
+    """
+    if target_language == "ml":
+        translated_message = translator.translate(text)  # Automatically detects the source language
+    else:
+        # If the target language is not Malayalam, handle accordingly
+        translated_message = text  # You can add other translations or default behavior as needed.
+        
+    return translated_message
+
 
 class CourseView(TemplateView):
     template_name='courses.html'

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
     {% load static %}
 <head>
@@ -197,6 +197,286 @@
             };
 
             return faq[userMessage] || "I'm sorry, I didn't quite catch that. Could you please ask something else?";
+        }
+    </script>
+</body>
+</html> -->
+
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNGCE Intelligent Chatbot</title>
+    <link rel="shortcut icon" type="image/icon" href="{% static 'images/college_logo.png' %}" style="border-radius: 0.75rem;">    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(45deg, #caa7ef 0%, #2575fc 100%);
+        }
+        
+        .chat-container {
+            max-height: 500px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.3) transparent;
+        }
+        
+        .chat-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-container::-webkit-scrollbar-thumb {
+            background-color: rgba(255,255,255,0.3);
+            border-radius: 10px;
+        }
+        
+        .typing-indicator {
+            display: none;
+            align-items: center;
+        }
+        
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            margin: 0 1px;
+            background-color: #8B5CF6;
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce 1.3s linear infinite;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes bounce {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-4px);
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white w-full rounded-2xl shadow-2xl overflow-hidden">
+        <div class="bg-gradient-to-r from-purple-600 to-blue-300 p-6 text-white">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-bold">Sree Narayana Gurukulam College of Engineering Chatbot</h2>
+                <i class="fas fa-robot text-3xl"></i>
+            </div>
+            <p class="text-sm text-gray-100 mt-2">
+                Your intelligent guide to SNGCE - Ask me anything about admissions, courses, facilities, and more!
+            </p>
+        </div>
+
+        <div id="chatMessages" class="chat-container p-4 space-y-3 h-96 overflow-y-auto">
+            <div class="flex items-start mb-4">
+                <div class="bg-gray-200 p-3 rounded-lg max-w-[80%]">
+                    <p class="text-gray-800">
+                        Hi there! I'm the SNGCE Intelligent Chatbot. I can help you with information about admissions, courses, facilities, and more. How can I assist you today?
+                    </p>
+                    <span class="text-xs text-gray-500 block mt-1">Bot • Just now</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="border-t p-4 bg-gray-50 flex space-x-2">
+            <select id="languageSelect" class="p-2 border rounded">
+                <option value="en" selected>English</option>
+                <option value="ml">Malayalam</option>
+            </select>
+            <input 
+                type="text" 
+                id="userMessage" 
+                placeholder="Type your question..." 
+                class="flex-grow p-3 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+            <button 
+                id="sendButton"
+                class="bg-gradient-to-r from-purple-600 to-blue-500 text-white p-3 rounded-full hover:from-purple-700 hover:to-blue-600 transition duration-300"
+            >
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+        
+        <div class="p-4 text-center bg-gray-100">
+            <a 
+                href="{% url 'h' %}" 
+                class="text-blue-600 hover:text-blue-800 font-semibold flex items-center justify-center space-x-2"
+            >
+                <i class="fas fa-home"></i>
+                <span>Home Page</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById("chatMessages");
+        const userMessageInput = document.getElementById("userMessage");
+        const sendButton = document.getElementById("sendButton");
+        const languageSelect = document.getElementById("languageSelect");
+        
+        // Disable the send button initially if the input is empty
+        userMessageInput.addEventListener('input', function() {
+            sendButton.disabled = userMessageInput.value.trim() === "";
+            if (sendButton.disabled) {
+                sendButton.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                sendButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        });
+        
+        // Check initial state
+        sendButton.disabled = userMessageInput.value.trim() === "";
+        if (sendButton.disabled) {
+            sendButton.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+        
+        // Add click event listener to send button
+        sendButton.addEventListener('click', sendMessage);
+        
+        // Add event listener for Enter key
+        userMessageInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                if (userMessageInput.value.trim() !== "") {
+                    sendMessage();
+                }
+            }
+        });
+        
+        async function sendMessage() {
+            const userMessage = userMessageInput.value.trim();
+            if (userMessage === "") return;
+            
+            // Show user message
+            displayMessage(userMessage, "user");
+            
+            // Clear input field
+            userMessageInput.value = "";
+            
+            // Disable send button
+            sendButton.disabled = true;
+            sendButton.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            try {
+                const language = languageSelect.value;
+                const response = await fetch("{% url 'chatbot' %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
+                    },
+                    body: JSON.stringify({ 
+                        message: userMessage,
+                        language: language
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Hide typing indicator
+                hideTypingIndicator();
+                
+                if (data.error) {
+                    displayMessage("Sorry, there was an error processing your request. Please try again later.", "bot");
+                } else {
+                    displayMessage(data.response, "bot");
+                }
+                
+            } catch (error) {
+                // Hide typing indicator
+                hideTypingIndicator();
+                
+                console.error("Error:", error);
+                displayMessage("Something went wrong. Please try again.", "bot");
+                
+            } finally {
+                // Re-enable send button if there's text in the input
+                sendButton.disabled = userMessageInput.value.trim() === "";
+                if (!sendButton.disabled) {
+                    sendButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+        }
+        
+        function showTypingIndicator() {
+            const typingElement = document.createElement("div");
+            typingElement.id = "typingIndicator";
+            typingElement.classList.add("flex", "items-start", "mb-4");
+            
+            const typingBubble = document.createElement("div");
+            typingBubble.classList.add("bg-gray-200", "p-3", "rounded-lg");
+            typingBubble.innerHTML = `
+                <div class="typing-indicator flex" style="display: flex;">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <span class="text-xs text-gray-500 block mt-1">Bot is typing...</span>
+            `;
+            
+            typingElement.appendChild(typingBubble);
+            chatMessages.appendChild(typingElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById("typingIndicator");
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        function displayMessage(message, sender) {
+            const messageElement = document.createElement("div");
+            messageElement.classList.add("flex", "items-start", "mb-4");
+            
+            // If the sender is the user, align the message to the right
+            if (sender === "user") {
+                messageElement.classList.add("justify-end");
+            }
+            
+            const messageBubble = document.createElement("div");
+            messageBubble.classList.add(
+                sender === "user" ? "bg-blue-200" : "bg-gray-200", 
+                "p-3", 
+                "rounded-lg", 
+                "max-w-[80%]"
+            );
+            
+            // Format message text to handle line breaks
+            const formattedMessage = message.replace(/\n/g, '<br>');
+            
+            messageBubble.innerHTML = `
+                <p class="text-gray-800">${formattedMessage}</p>
+                <span class="text-xs text-gray-500 block mt-1">
+                    ${sender === "user" ? "You" : "Bot"} • Just now
+                </span>
+            `;
+            
+            messageElement.appendChild(messageBubble);
+            chatMessages.appendChild(messageElement);
+            
+            // Auto-scroll to the bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
     </script>
 </body>
