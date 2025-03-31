@@ -37,10 +37,16 @@
                             </div>
                             <h3 class="text-lg font-bold text-gray-800">{{n.title}}</h3>
                             <p class="text-gray-600 mt-2 mb-3">{{n.message}}</p>
-                            {% if n.btn_name %}
+                            {% if n.btn_name != "None" %}
                             <a href="{{n.btn_link}}" class="bg-blue-300 text-white px-3 py-2 rounded hover:bg-blue-600">
                                 {{n.btn_name}}
                             </a>
+                            
+                            <div class="flex items-center gap-4 mt-4">
+                             
+                                <a href="{% url 'forms' n.id %}" style="color: red;" >Response click here...</a>
+                            </div>
+
                             {% endif %}
                             <div class="flex items-center gap-4 mt-4">
                              

@@ -79,7 +79,13 @@
                 <div class="px-4 py-2 text-gray-400 text-xs uppercase mt-4">Notifications</div>
                 <a href="{% url 'notification' %}" class="block px-4 py-2 rounded hover:bg-blue-600">View Notifications</a>
                 {% comment %} <a href="#notifications-add" class="block px-4 py-2 rounded hover:bg-blue-600">Add Notification</a> {% endcomment %}
+                
+                <div class="px-4 py-2 text-gray-400 text-xs uppercase mt-4">Enquiries</div>
+                <a href="{% url 'enquiries' %}" class="block px-4 py-2 rounded hover:bg-blue-600">View Enquiries</a>
+                
                 <div class="px-4 py-2 text-gray-400 text-xs uppercase mt-4"></div>
+                <!-- Add this to your sidebar navigation -->
+
                 <a href="{% url 'h' %}" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 " style="margin-left:40px;">
                     Logout
                 </a>

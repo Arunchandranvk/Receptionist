@@ -316,3 +316,33 @@ class DeleteTeacherView(LoginRequiredMixin, View):
             return JsonResponse({'status': 'success'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
+        
+        
+def enquiry(request):
+    enquiries = Enquiry.objects.all()  
+    context = {
+        'enquiries': enquiries,
+    }
+    return render(request, 'enquiries.html', context)
+
+
+def delete_enquiry(request):
+    if request.method == 'POST':
+        enquiry_id = request.POST.get('enquiry_id')
+        try:
+            enquiry = Enquiry.objects.get(id=enquiry_id)
+            enquiry.delete()
+            messages.success(request, 'Enquiry deleted successfully')
+        except Enquiry.DoesNotExist:
+            messages.error(request, 'Enquiry not found')
+    
+    return redirect('enquiry')
+
+
+class FormResponse(TemplateView):
+    template_name='response.html'
+    def get_context_data(self, **kwargs):
+        context =  super().get_context_data(**kwargs)
+        id=kwargs.get('pk')
+        context['notifications'] = SemesterRegistration.objects.filter(notification_id=id)
+        return context

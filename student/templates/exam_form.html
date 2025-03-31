@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SNGCE - Exam Form</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+  
+    .containerS {
+        max-width: 800px;
+        margin: 0 auto;
+        background-color: #fff;
+        padding: 40px;
+        border: 2px solid #8b4513;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        margin-top:10px;
+    }
+    h1, h2 {
+        text-align: center;
+        color: #8b4513;
+    }
+    .details input, table input {
+        width: 100%;
+        padding: 5px;
+        border: 1px solid #8b4513;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    th, td {
+        border: 1px solid #8b4513;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #deb887;
+    }
+    .signature-box {
+        margin-top: 20px;
+        border-top: 1px solid #8b4513;
+        padding-top: 10px;
+    }
+</style>
+</head>
+<body>
+<div class="containerS">
+    {% comment %} {{request.user}} {% endcomment %}
+    <form method="POST">
+   {% csrf_token %}
+        <h1>Sree Narayana Gurukulam College of Engineering</h1>
+        <h2>Application For Semester Registration</h2>
+        
+        <div class="details">
+            <p><strong>Name:</strong> <input type="text" name="name" value="{{request.user.name}}" required></p>
+            <p><strong>KTU Register Number:</strong> <input type="text" name="ktu_number"  value="{{request.user.student.std_id}}" required></p>
+            <p><strong>Program & Branch:</strong> <input type="text" name="program"  value="{{request.user.student.department.name }}" required></p>
+            <p><strong>Semester Completed:</strong> <input type="text" name="semester"  value="{{request.user.student.sem}}" required></p>
+            <p><strong>Admission Year / Batch:</strong> <input type="text" name="batch" required></p>
+            <p><strong>Date:</strong> <input type="date" name="date"    required></p>
+        </div>
+
+        <h3>Semester Performance</h3>
+        <table>
+            <tr>
+                <th>Semester</th>
+                <th>Credits Earned</th>
+                <th>SGPA</th>
+                <th>Courses Failed</th>
+            </tr>
+            {% for i in "1234567" %}
+            <tr>
+                <td><input type="text" name="semester_{{ i }}" ></td>
+                <td><input type="text" name="credits_{{ i }}" ></td>
+                <td><input type="text" name="sgpa_{{ i }}" ></td>
+                <td><input type="text" name="failed_courses_{{ i }}"></td>
+            </tr>
+            {% endfor %}
+        </table>
+        
+        <h3>Internal Mark and Attendance</h3>
+        <table>
+            <tr>
+                <th>Course Code</th>
+                <th>Course Name</th>
+                <th>Internal Mark</th>
+                <th>Attendance</th>
+            </tr>
+            {% for i in "1234567" %}
+            <tr>
+                <td><input type="text" name="course_code_{{ i }}" ></td>
+                <td><input type="text" name="course_name_{{ i }}" ></td>
+                <td><input type="text" name="internal_mark_{{ i }}" ></td>
+                <td><input type="text" name="attendance_{{ i }}" ></td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <div class="signature-box">
+            <p><strong>Student Signature:</strong> <input type="text" name="student_signature" ></p>
+            <p><strong>Mobile:</strong> <input type="text" name="student_mobile"   ></p>
+        </div>
+        
+        <div class="signature-box">
+            <p><strong>Parent Signature:</strong> <input type="text" name="parent_signature" ></p>
+            <p><strong>Mobile:</strong> <input type="text" name="parent_mobile" ></p>
+        </div>
+        
+        <div class="signature-box">
+            <p><strong>Sr. Advisor Remarks:</strong> <input type="text" name="advisor_remarks"></p>
+            <p><strong>Name & Signature:</strong> <input type="text" name="advisor_signature"></p>
+        </div>
+        
+        <div class="signature-box">
+            <p><strong>HoD Remarks:</strong> <input type="text" name="hod_remarks"></p>
+            <p><strong>Signature:</strong> <input type="text" name="hod_signature"></p>
+        </div>
+        
+        <div class="signature-box">
+            <p><strong>Principal Remarks:</strong> <input type="text" name="principal_remarks"></p>
+            <p><strong>Signature:</strong> <input type="text" name="principal_signature"></p>
+        </div>
+        
+        <button type="submit" style="margin-top: 20px; padding: 10px 20px; background-color: #8b4513; color: white; border: none;">Submit</button>
+    </form>
+</div>
+</body>
+</html>
