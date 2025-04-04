@@ -23,5 +23,6 @@ urlpatterns = [
     path('enquiries/',enquiry, name='enquiries'),
     path('delete-enquiry/',delete_enquiry, name='delete_enquiry'),
         path('form-response/<int:pk>/',FormResponse.as_view(), name='forms'),
+        path('toggle-read-status/', toggle_read_status, name='toggle_read_status'),
 
 ]

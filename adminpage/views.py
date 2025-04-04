@@ -325,6 +325,19 @@ def enquiry(request):
     }
     return render(request, 'enquiries.html', context)
 
+# Add this new view to toggle read status
+def toggle_read_status(request):
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        enquiry_id = request.POST.get('enquiry_id')
+        try:
+            enquiry = Enquiry.objects.get(id=enquiry_id)
+            enquiry.is_read = not enquiry.is_read
+            enquiry.save()
+            return JsonResponse({'success': True, 'is_read': enquiry.is_read})
+        except Enquiry.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Enquiry not found'}, status=404)
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+
 
 def delete_enquiry(request):
     if request.method == 'POST':

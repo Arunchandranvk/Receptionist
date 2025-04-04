@@ -141,6 +141,7 @@ class Enquiry(models.Model):
     email = models.EmailField()
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)  # New field to track read status
     
     def __str__(self):
         return f"Enquiry from {self.name} ({self.created_at.strftime('%Y-%m-%d')})"
@@ -148,6 +149,7 @@ class Enquiry(models.Model):
     class Meta:
         verbose_name_plural = "Enquiries"
         ordering = ['-created_at']
+        
         
         
         

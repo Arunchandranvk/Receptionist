@@ -21,6 +21,13 @@
             transform: translateY(-10px);
             box-shadow: 0 20px 30px rgba(0,0,0,0.1);
         }
+        .event-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 25px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
@@ -34,6 +41,14 @@
                 <ul class="flex space-x-6 items-center">
                     <li><a href="{% url 'h' %}" class="hover:text-blue-200 transition-colors">Home</a></li>
                     <li><a href="{% url 'course' %}" class="hover:text-blue-200 transition-colors">Courses</a></li>
+                    <li>
+                        <a 
+                            href="{% url 'bot' %}" 
+                            class="bg-white text-purple-700 px-5 py-2 rounded-full hover:bg-blue-50 transition-colors"
+                        >
+                            Help
+                        </a>
+                    </li>
                     <li>
                         <a 
                             href="{% url 'enquiry' %}" 
@@ -88,9 +103,57 @@
                 >
             </div>
         </section>
+        
+        <!-- Events Section -->
+        <section class="mt-24">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-purple-800">Upcoming Events</h2>
+                <p class="text-gray-600 mt-3">Stay updated with our latest events and activities</p>
+            </div>
+            
+            {% if events %}
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {% for event in events %}
+                <div class="event-card bg-white rounded-xl overflow-hidden shadow-lg">
+                    <div class="h-48 overflow-hidden">
+                        {% if event.img %}
+                        <img src="{{ event.img.url }}" alt="{{ event.title }}" class="w-full h-full object-cover">
+                        {% else %}
+                        <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                            <span class="text-gray-400">No Image</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">{{ event.cat }}</span>
+                            <span class="text-sm text-gray-500">{{ event.date|date:"M d, Y" }}</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">{{ event.title }}</h3>
+                        <p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ event.description|truncatechars:100 }}</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-500">
+                                <span class="font-medium">Time:</span> {{ event.time }}
+                            </span>
+                            <span class="text-sm text-gray-500">
+                                <span class="font-medium">Venue:</span> {{ event.venue }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            
+            {% else %}
+            <div class="bg-gray-100 p-8 rounded-xl text-center">
+                <p class="text-gray-600">No upcoming events at the moment. Check back soon!</p>
+            </div>
+            {% endif %}
+        </section>
     </main>
 
-    <footer class="bg-gray-900 text-white py-12 mt-12">
+    <footer class="bg-gray-900 text-white py-12 mt-24">
         <div class="container mx-auto text-center">
             <div class="mb-6">
                 <h3 class="text-2xl font-bold mb-4">SNGCE</h3>
@@ -98,11 +161,7 @@
                     Committed to excellence in education, research, and personal growth.
                 </p>
             </div>
-            <div class="flex justify-center space-x-6 mb-8">
-                <a href="#" class="hover:text-blue-300 transition-colors">About Us</a>
-                <a href="#" class="hover:text-blue-300 transition-colors">Admissions</a>
-                <a href="chatbot.html" class="hover:text-blue-300 transition-colors">Contact</a>
-            </div>
+            
             <p class="text-gray-500">&copy; 2025 SNGCE. All Rights Reserved.</p>
         </div>
     </footer>

@@ -207,7 +207,12 @@ def chatbot_response(request):
 
 
 class HomeView(TemplateView):
-    template_name='home.html'
+    template_name = 'home.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['events'] = Event.objects.all().order_by('-date')  # Get latest 4 events
+        return context
 
 
 from django.views.decorators.csrf import csrf_exempt
@@ -336,7 +341,7 @@ class PDFChatbot:
             #     # Fallback to local model or other API
             #     llm = SomeOtherLLM()
                 
-            # Create a conversational retriever that queries the vectorstore
+            # Create a conversational retriever that queries the vectorstoren  
             conversation_chain = ConversationalRetrievalChain.from_llm(
                 llm=llm,
                 retriever=self.vectorstore.as_retriever(),

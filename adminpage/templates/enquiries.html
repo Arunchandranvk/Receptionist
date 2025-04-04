@@ -19,15 +19,31 @@
 
     <!-- Enquiries Content -->
     <div class="p-8">
+        <!-- Quick Filters -->
+        <div class="mb-6 flex flex-wrap gap-4">
+            <button id="showAll" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900 active">All</button>
+            <button id="showUnread" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Unread</button>
+            <button id="showRead" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Read</button>
+        </div>
+        
         <!-- Enquiries Table -->
         <div class="bg-white rounded-lg shadow overflow-hidden">
-            <div class="px-6 py-4 border-b">
+            <div class="px-6 py-4 border-b flex justify-between items-center">
                 <h3 class="text-xl font-bold">All Enquiries</h3>
+                <div class="text-sm text-gray-500">
+                    <span id="unreadCount" class="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                        {% load enquiry_filters %}
+                        {{ enquiries|dictsortreversed:"created_at"|filter_unread|length }} Unread
+                    </span>
+                </div>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Name
                             </th>
@@ -47,14 +63,40 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         {% for enquiry in enquiries %}
-                        <tr>
+                        <tr class="enquiry-row {% if not enquiry.is_read %}unread-row bg-blue-50{% else %}read-row{% endif %}">
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">{{ enquiry.name }}</div>
+                                <button 
+                                    onclick="toggleReadStatus('{{ enquiry.id }}', this)" 
+                                    class="read-toggle {% if enquiry.is_read %}text-green-600{% else %}text-blue-600{% endif %} hover:text-gray-900"
+                                    data-read="{{ enquiry.is_read|lower }}"
+                                >
+                                    {% if enquiry.is_read %}
+                                    <span class="flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        Read
+                                    </span>
+                                    {% else %}
+                                    <span class="flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                                        </svg>
+                                        Unread
+                                    </span>
+                                    {% endif %}
+                                </button>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900 {% if not enquiry.is_read %}font-bold{% endif %}">
+                                    {{ enquiry.name }}
+                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-gray-500">{{ enquiry.email }}</div>
                             </td>
-                            <td class="px-6 py-4">
+                            <td class="px-12 py-4">
                                 <div class="text-sm text-gray-900 max-w-xs overflow-hidden" style="text-overflow: ellipsis; white-space: nowrap;">
                                     {{ enquiry.message|truncatechars:50 }}
                                 </div>
@@ -63,9 +105,9 @@
                                 <div class="text-sm text-gray-500">{{ enquiry.created_at|date:"d M Y, h:i a" }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="viewEnquiry('{{ enquiry.id }}', '{{ enquiry.name }}', '{{ enquiry.email }}', '{{ enquiry.message|escapejs }}', '{{ enquiry.created_at|date:"d M Y, h:i a" }}')" class="text-blue-600 hover:text-blue-900 mr-3">
+                                {% comment %} <button onclick="viewEnquiry('{{ enquiry.id }}', '{{ enquiry.name }}', '{{ enquiry.email }}', '{{ enquiry.message|escapejs }}', '{{ enquiry.created_at|date:"d M Y, h:i a" }}', {{ enquiry.is_read|lower }})" class="text-blue-600 hover:text-blue-900 mr-3">
                                     View
-                                </button>
+                                </button> {% endcomment %}
                                 <a href="mailto:{{ enquiry.email }}" target="_blank" class="text-green-600 hover:text-green-900 mr-3">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -79,7 +121,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                            <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
                                 No enquiries found.
                             </td>
                         </tr>
@@ -97,11 +139,14 @@
         <div class="bg-white rounded-lg shadow-xl w-full max-w-lg">
             <div class="flex justify-between items-center p-6 border-b">
                 <h3 class="text-lg font-bold" id="modalTitle">Enquiry Details</h3>
-                <button onclick="closeModal('viewEnquiryModal')" class="text-gray-500 hover:text-gray-700">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
+                <div class="flex items-center">
+                    <span id="modalReadStatus" class="mr-4"></span>
+                    <button onclick="closeModal('viewEnquiryModal')" class="text-gray-500 hover:text-gray-700">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
             <div class="p-6">
                 <div class="mb-4">
@@ -121,13 +166,18 @@
                     <div id="enquiryMessage" class="text-gray-900 bg-gray-50 p-3 rounded"></div>
                 </div>
             </div>
-            <div class="px-6 py-4 border-t flex justify-end space-x-4">
-                <a id="replyEmailBtn" href="#" target="_blank" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                    Reply via Email
-                </a>
-                <button onclick="closeModal('viewEnquiryModal')" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
-                    Close
-                </button>
+            <div class="px-6 py-4 border-t flex justify-between">
+                {% comment %} <button id="toggleReadBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Mark as Read
+                </button> {% endcomment %}
+                <div class="flex space-x-4">
+                    <a id="replyEmailBtn" href="#" target="_blank" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                        Reply via Email
+                    </a>
+                    <button onclick="closeModal('viewEnquiryModal')" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                        Close
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -157,9 +207,34 @@
     </div>
 </div>
 
+<style>
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 50;
+        display: none;
+    }
+    
+    .modal.active {
+        display: block;
+    }
+    
+    button.active {
+        box-shadow: 0 0 0 2px white, 0 0 0 4px currentColor;
+    }
+</style>
+
 <script>
+    // Current viewed enquiry ID
+    let currentEnquiryId = null;
+    let currentEnquiryIsRead = false;
+    
     // Function to view enquiry details
-    function viewEnquiry(id, name, email, message, date) {
+    function viewEnquiry(id, name, email, message, date, isRead) {
         document.getElementById('enquiryName').textContent = name;
         document.getElementById('enquiryEmail').textContent = email;
         document.getElementById('enquiryMessage').textContent = message;
@@ -168,8 +243,119 @@
         // Set up the reply email button with the correct mailto link
         document.getElementById('replyEmailBtn').href = "mailto:" + email + "?subject=Re: Your Enquiry to SNGCE";
         
+        // Store the current enquiry ID and read status
+        currentEnquiryId = id;
+        currentEnquiryIsRead = isRead;
+        
+        // Update the read status indicator in the modal
+        updateModalReadStatus(isRead);
+        
+        // Update the toggle read button text based on current status
+        updateToggleReadButton(isRead);
+        
         // Open the modal
         document.getElementById('viewEnquiryModal').classList.add('active');
+        
+        // If viewing an unread enquiry, mark it as read automatically
+        if (!isRead) {
+            markAsRead(id);
+        }
+    }
+    
+    // Function to update the read status indicator in the modal
+    function updateModalReadStatus(isRead) {
+        const statusElement = document.getElementById('modalReadStatus');
+        if (isRead) {
+            statusElement.innerHTML = '<span class="bg-green-100 text-green-800 px-2 py-1 rounded flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg> Read</span>';
+        } else {
+            statusElement.innerHTML = '<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg> Unread</span>';
+        }
+    }
+    
+    // Function to update the toggle read button text
+    function updateToggleReadButton(isRead) {
+        const toggleBtn = document.getElementById('toggleReadBtn');
+        if (isRead) {
+            toggleBtn.textContent = "Mark as Unread";
+            toggleBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+            toggleBtn.classList.add('bg-gray-500', 'hover:bg-gray-600');
+        } else {
+            toggleBtn.textContent = "Mark as Read";
+            toggleBtn.classList.remove('bg-gray-500', 'hover:bg-gray-600');
+            toggleBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
+        }
+    }
+    
+    // Function to mark an enquiry as read
+    function markAsRead(id) {
+        // Send AJAX request to mark as read
+        toggleReadStatus(id);
+    }
+    
+    // Function to toggle read status
+    function toggleReadStatus(id, buttonElement = null) {
+        // Get the CSRF token from a cookie
+        const csrftoken = getCookie('csrftoken');
+        
+        // Create form data
+        const formData = new FormData();
+        formData.append('enquiry_id', id);
+        
+        // Send AJAX request
+        fetch('{% url "toggle_read_status" %}', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrftoken
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update UI based on the new status
+                if (buttonElement) {
+                    const row = buttonElement.closest('tr');
+                    
+                    // Update the button text and style
+                    if (data.is_read) {
+                        buttonElement.innerHTML = '<span class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>Read</span>';
+                        buttonElement.classList.remove('text-blue-600');
+                        buttonElement.classList.add('text-green-600');
+                        row.classList.remove('unread-row', 'bg-blue-50');
+                        row.classList.add('read-row');
+                        
+                        // Remove bold from name
+                        row.querySelector('td:nth-child(2) div').classList.remove('font-bold');
+                    } else {
+                        buttonElement.innerHTML = '<span class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>Unread</span>';
+                        buttonElement.classList.remove('text-green-600');
+                        buttonElement.classList.add('text-blue-600');
+                        row.classList.remove('read-row');
+                        row.classList.add('unread-row', 'bg-blue-50');
+                        
+                        // Add bold to name
+                        row.querySelector('td:nth-child(2) div').classList.add('font-bold');
+                    }
+                    
+                    // Update the data attribute
+                    buttonElement.setAttribute('data-read', data.is_read);
+                }
+                
+                // Update modal if this is the current enquiry
+                if (id == currentEnquiryId) {
+                    currentEnquiryIsRead = data.is_read;
+                    updateModalReadStatus(data.is_read);
+                    updateToggleReadButton(data.is_read);
+                }
+                
+                // Update unread count
+                updateUnreadCount();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
     }
     
     // Function to confirm deletion
@@ -182,6 +368,78 @@
     // Function to close any modal
     function closeModal(modalId) {
         document.getElementById(modalId).classList.remove('active');
+    }
+    
+    // Function to get cookie value by name
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Function to update unread count
+    function updateUnreadCount() {
+        const unreadRows = document.querySelectorAll('.unread-row').length;
+        document.getElementById('unreadCount').textContent = unreadRows + ' Unread';
+    }
+    
+    // Filter functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const showAllBtn = document.getElementById('showAll');
+        const showUnreadBtn = document.getElementById('showUnread');
+        const showReadBtn = document.getElementById('showRead');
+        
+        showAllBtn.addEventListener('click', function() {
+            filterRows('all');
+            setActiveButton(this);
+        });
+        
+        showUnreadBtn.addEventListener('click', function() {
+            filterRows('unread');
+            setActiveButton(this);
+        });
+        
+        showReadBtn.addEventListener('click', function() {
+            filterRows('read');
+            setActiveButton(this);
+        });
+        
+        
+    });
+    
+    function filterRows(filter) {
+        const rows = document.querySelectorAll('.enquiry-row');
+        
+        rows.forEach(row => {
+            if (filter === 'all') {
+                row.style.display = '';
+            } else if (filter === 'unread' && row.classList.contains('unread-row')) {
+                row.style.display = '';
+            } else if (filter === 'read' && row.classList.contains('read-row')) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+    
+    function setActiveButton(button) {
+        // Remove active class from all filter buttons
+        document.querySelectorAll('#showAll, #showUnread, #showRead').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Add active class to clicked button
+        button.classList.add('active');
     }
 </script>
 {% endblock %}
